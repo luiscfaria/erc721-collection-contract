@@ -2,11 +2,10 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract FariaCollection is ERC721, Ownable {
+contract FariaCollection is ERC721, ERC721Burnable, Ownable {
     uint256 public MINTED;
     uint256 public constant MAX_SUPPLY = 100;
     uint256 public constant MAX_MINT_PER_WALLET = 2;
@@ -39,10 +38,6 @@ contract FariaCollection is ERC721, Ownable {
             _safeMint(msg.sender, MINTED + 1);
             MINTED += 1;
         }
-    }
-
-    function burn(uint256 tokenId) public {
-        _burn(tokenId);
     }
 
     function _burn(uint256 tokenId) internal override(ERC721) {
