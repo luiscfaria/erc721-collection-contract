@@ -114,5 +114,51 @@ describe("Faria Collection", function () {
       expect(result).to.equal(price);
     });
 
+    it("should return the correct URI for a given token ID", async () => {
+      await FariaCollection.connect(addr1).publicMint(1, {
+        value: price,
+      });
+      const baseUri = "test";
+      const tokenId = 1;
+      await FariaCollection.setBaseUri(baseUri);
+      const result = await FariaCollection.tokenURI(tokenId);
+      expect(result).to.equal(`${baseUri}${tokenId}.json`);
+    });
+
+    it("should revert if the token ID does not exist", async () => {
+      const tokenId = 101;
+      await expect(FariaCollection.tokenURI(tokenId))
+        .to.be.revertedWith("URI query for nonexistent token");
+    });
+
+    it("withdraw should only be callable by the contract owner", async () => {
+      await expect(FariaCollection.connect(addr1).withdraw())
+        .to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("should transfer the contract balance to the owner's wallet", async () => {
+      await FariaCollection.connect(addr1).publicMint(1, {
+        value: price,
+      });
+
+      const initialOwnerBalance = await owner.getBalance();
+
+      await FariaCollection.withdraw();
+
+      const finalOwnerBalance = await owner.getBalance();
+      expect(finalOwnerBalance).to.be.greaterThan(initialOwnerBalance);
+    });
+
+    it("should reset the contract balance to zero", async () => {
+      await FariaCollection.connect(addr1).publicMint(1, {
+        value: price,
+      });
+
+      await FariaCollection.withdraw();
+      const finalBalance = await ethers.provider.getBalance(
+        FariaCollection.address
+      );
+      expect(finalBalance).to.equal(0);
+    });
   });
 });
