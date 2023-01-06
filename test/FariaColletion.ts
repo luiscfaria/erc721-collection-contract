@@ -27,12 +27,35 @@ describe("Faria Collection", function () {
   });
 
   describe("Deployment and Mint", function () {
+    it("should have the correct name", async () => {
+      const name = await FariaCollection.name();
+      expect(name).to.equal("FariaCollection");
+    });
+
+    it("should have the correct symbol", async () => {
+      const symbol = await FariaCollection.symbol();
+      expect(symbol).to.equal("FAR");
+    });
+
     it("Should Mint 1 NFT", async function () {
       await FariaCollection.connect(addr1).publicMint(1, {
         value: price,
       });
 
       expect(await FariaCollection.balanceOf(addr1.address)).to.equal(1);
+    });
+
+    it("should increase the contract balance after a successful mint", async () => {
+      const initialBalance = await ethers.provider.getBalance(
+        FariaCollection.address
+      );
+
+      await FariaCollection.publicMint(1, { value: price });
+
+      const finalBalance = await ethers.provider.getBalance(
+        FariaCollection.address
+      );
+      expect(finalBalance).to.be.greaterThan(initialBalance);
     });
 
     it("Should Mint 2 NFTs", async function () {
@@ -60,14 +83,36 @@ describe("Faria Collection", function () {
     });
 
     it("Should fail to mint without enough money", async function () {
-        expect(
-          FariaCollection.connect(addr2).publicMint(1, {
-            value: price - 1,
-          })
-        ).to.be.revertedWith("TRANSACTION_UNDERVALUED");
-      });
+      expect(
+        FariaCollection.connect(addr2).publicMint(1, {
+          value: price - 1,
+        })
+      ).to.be.revertedWith("TRANSACTION_UNDERVALUED");
+    });
 
+    it("setBaseUri should only be callable by the contract owner", async () => {
+      await expect(FariaCollection.connect(addr1).setBaseUri("test"))
+        .to.be.revertedWith("Ownable: caller is not the owner");
+    });
 
+    it("should set the base URI correctly", async () => {
+      const baseUri = "test";
+      await FariaCollection.setBaseUri(baseUri);
+      const result = await FariaCollection.baseUri();
+      expect(result).to.equal(baseUri);
+    });
+
+    it("setPrice should only be callable by the contract owner", async () => {
+      await expect(FariaCollection.connect(addr1).setPrice(1000))
+        .to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("should set the price correctly", async () => {
+      const price = 1000;
+      await FariaCollection.setPrice(price);
+      const result = await FariaCollection.price();
+      expect(result).to.equal(price);
+    });
 
   });
 });

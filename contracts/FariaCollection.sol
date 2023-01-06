@@ -25,10 +25,7 @@ contract FariaCollection is ERC721, Ownable {
 
         require(MINTED + buyAmount <= MAX_SUPPLY, "MAX_SUPPLY_REACHED");
 
-        require(
-            msg.value >= price * buyAmount,
-            "TRANSACTION_UNDERVALUED"
-        );
+        require(msg.value >= price * buyAmount, "TRANSACTION_UNDERVALUED");
 
         _;
     }
@@ -42,6 +39,10 @@ contract FariaCollection is ERC721, Ownable {
             _safeMint(msg.sender, MINTED + 1);
             MINTED += 1;
         }
+    }
+
+    function burn(uint256 tokenId) public {
+        _burn(tokenId);
     }
 
     function _burn(uint256 tokenId) internal override(ERC721) {
